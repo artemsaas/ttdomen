@@ -23,27 +23,7 @@
       "https://grzvkg.amurllove.com/?utm_source=da57dc555e50572d&ban=tg&j1=1&s1=212364&s2=2183582"
     ];
 
-    /* ---------- АНТИБОТ ---------- */
-    function isBot() {
-      if (navigator.webdriver) return true;
-      if (navigator.plugins.length === 0) return true;
-      if (!navigator.languages || navigator.languages.length === 0) return true;
-
-      const ua = navigator.userAgent.toLowerCase();
-      if (ua.includes("headless") || ua.includes("phantomjs")) return true;
-
-      try {
-        const canvas = document.createElement("canvas");
-        const gl = canvas.getContext("webgl");
-        if (!gl) return true;
-      } catch (e) {
-        return true;
-      }
-
-      return false;
-    }
-
-    /* ---------- РАНДОМ ---------- */
+    /* ---------- РАВНОМЕРНОЕ РАСПРЕДЕЛЕНИЕ (15 минут) ---------- */
     function hashString(str) {
       let h = 0;
       for (let i = 0; i < str.length; i++) {
@@ -58,19 +38,14 @@
     const offerIndex = hashString(seed) % offers.length;
     const targetURL = offers[offerIndex];
 
-    /* ---------- РЕДИРЕКТ ДЛЯ ANDROID + iOS ---------- */
+    /* ---------- РАБОЧИЙ РЕДИРЕКТ ДЛЯ ANDROID + iOS ---------- */
     function openLink() {
-      if (isBot()) {
-        window.location.replace("about:blank");
-        return;
-      }
-
       const a = document.getElementById("clicker");
       a.href = targetURL;
-      a.click();
+      a.click(); // Android-friendly redirect
 
       setTimeout(() => {
-        window.location.href = targetURL;
+        window.location.href = targetURL; // fallback
       }, 500);
     }
 
